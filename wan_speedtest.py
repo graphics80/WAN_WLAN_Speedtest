@@ -69,6 +69,8 @@ def main():
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             ping_ms, dl, ul, server = run_speedtest()
+            if isinstance(server, str) and server.upper().startswith("ERROR"):
+                raise RuntimeError(server)
             error = None
             break
         except Exception as e:
