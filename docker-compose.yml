@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  influxdb:
+    image: influxdb:1.8
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      INFLUXDB_DB: netmon
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+
+  collector:
+    build: .
+    depends_on:
+      - influxdb
+    environment:
+      INFLUX_URL: http://influxdb:8086/write
+      INFLUX_DB: netmon
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - ./logs:/root
+    command: /bin/sh -c "python check_sites.py && python wan_speedtest.py"
+
+  check-sites:
+    build: .
+    depends_on:
+      - influxdb
+    environment:
+      INFLUX_URL: http://influxdb:8086/write
+      INFLUX_DB: netmon
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - ./logs:/root
+    command: /bin/sh -c "while true; do python check_sites.py; sleep 60; done"
+
+  wan-speedtest:
+    build: .
+    depends_on:
+      - influxdb
+    environment:
+      INFLUX_URL: http://influxdb:8086/write
+      INFLUX_DB: netmon
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - ./logs:/root
+    command: /bin/sh -c "while true; do python wan_speedtest.py; sleep 1800; done"
+
+volumes:
+  influxdb-data:
