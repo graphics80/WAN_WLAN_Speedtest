@@ -52,3 +52,8 @@ wheels/
 
 # VS Code
 .history/
+/.docker/buildx/.lock
+/.docker/buildx/current
+/.docker/buildx/activity/default
+/logs/http_check_log.csv
+/logs/wan_speedtest_log.csv
