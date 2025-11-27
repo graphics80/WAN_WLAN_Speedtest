@@ -25,9 +25,10 @@
 - PRs should describe intent, list key changes, and note operational impacts (scheduling, new endpoints, log paths). Link to any issue/ticket and include screenshots or sample log/Influx lines when relevant.
 
 ## Docker-Based Testing
-- Build: `docker compose build`; start Influx: `docker compose up -d influxdb`.
+- Build: `docker compose build`; start stack: `docker compose up -d influxdb grafana check-sites wan-speedtest`.
 - One-off runs: `docker compose run --rm collector` (both scripts), or `docker compose run --rm collector python check_sites.py`.
-- Scheduled containers: `docker compose up -d check-sites` (every minute) and `docker compose up -d wan-speedtest` (every 30 minutes); CSVs land in `./logs/`.
+- Scheduled containers: `check-sites` (every minute) and `wan-speedtest` (every 30 minutes); CSVs land in `./logs/`.
+- Grafana: auto-starts on port 3000 (admin/admin). Datasource and dashboard (`WAN / WLAN`) are auto-provisioned from `grafana/provisioning/`. Data source UID `ef5d72wmn4kjkf`, dashboard UID `ef5dcooiib6kga`.
 - Shell: `docker run --rm -it -v "$PWD":/app -w /app python:3.11-slim bash` then `pip install -r requirements.txt`.
 - Configure Influx via env (`INFLUX_URL`, `INFLUX_DB`); compose defaults to `http://influxdb:8086/write`.
 

@@ -14,10 +14,13 @@ Log: ~/wan_speedtest_log.csv
 import datetime
 import csv
 import os
+import time
 from common_influx import write_influx
 
 
 LOGFILE = os.path.expanduser("~/wan_speedtest_log.csv")
+MAX_RETRIES = 3
+RETRY_DELAY_SECONDS = 5
 
 
 def ensure_csv_with_header(path: str, header: list) -> None:
@@ -62,13 +65,22 @@ def main():
     ts = datetime.datetime.now().isoformat(timespec="seconds")
     print(f"[{ts}] Starte Speedtest...")
 
-    try:
-        ping_ms, dl, ul, server = run_speedtest()
-    except Exception as e:
-        # bei Fehler trotzdem loggen
-        row = [ts, None, None, None, f"ERROR: {e}"]
+    error = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            ping_ms, dl, ul, server = run_speedtest()
+            error = None
+            break
+        except Exception as e:
+            error = e
+            print(f"Fehler beim Speedtest (Versuch {attempt}/{MAX_RETRIES}): {e}")
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_DELAY_SECONDS)
+
+    if error:
+        row = [ts, None, None, None, f"ERROR: {error}"]
         append_row(LOGFILE, row)
-        print(f"Fehler beim Speedtest: {e}")
+        print(f"Speedtest abgebrochen nach {MAX_RETRIES} Versuchen: {error}")
         return
 
     row = [ts, ping_ms, dl, ul, server]
